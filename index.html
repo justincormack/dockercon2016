@@ -78,6 +78,7 @@
 </section>
 
 <!-- unikernel, how it started -->
+<!-- what were the three issues? -->
 
 <section class="slide pic">
 <div>
@@ -88,6 +89,82 @@
 </section>
 
 
+<section class="slide shout">
+<div>
+<h2>Hyperkit</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+<h2>Hyperkit: A toolkit for embedding hypervisor capabilities in your application</h2>
+<ul>
+	<li>Only used on the Mac - Windows uses Hyper-V
+	<li>Based on Xhyve, which in turn is bsed on Bhyve from FreeBSD
+	<li>A hypervisor is just a single process per emulated CPU core
+</ul>
+</div>
+</section>
+
+<section class="slide shout">
+<div>
+<h2>Datakit</h2>
+</div>
+</section>
+
+<!-- how config is stored -->
+
+<section class="slide shout">
+<div>
+<h2>Moby</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+<img src="pictures/alpine.png" width="100%"/>
+<h2>Alpine Linux is a security-oriented, lightweight Linux distribution based on musl libc and busybox.</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Stateless</h2>
+<ul>
+	<li>Alpine was designed to boot from init ramdisk
+	<li>Reboot and everything is back to the same state, except <code>/var</code> with Docker state on it.
+	<li>Configuration stored in the datakit database, currently mounted on <code>/Database</code>
+	<li>Phoenix like, just rebuild a new image, no upgrades
+	<li>Only runs Docker and supporting infrastructure.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>No user serviceable parts?</h2>
+<ul>
+	<li>Designed to “just work” and keep Docker runnning.
+	<li>Database sets all the Docker and system config (sorry no UI yet)
+	<li>Use privileged containers or capabilities to do other host changes, persist with <code>--restart always</code>
+	<li>eg <a href="https://github.com/etown/install-sysdig-module/blob/master/Dockerfile">install sysdig kernel module</a>
+	<li>root shell: <code>docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh</code>
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Kernel</h2>
+<ul>
+	<li>Currently stable 4.4.x series kernel with aufs, vsock and hvsock patches
+	<li>No modules, everything built in for fast boot, but you can add modules
+	<li>Supports aufs and overlay storage drivers (overlay2 soon)
+	<li>Supports NFS, SMB, CRIU, many other things requested by users on the forum
+	<li>config in <code>/proc/config.gz</code> patches in <code>/etc/kernel-patches</code>
+<ul>
+</div>
+</section>
 
 
 
@@ -96,8 +173,9 @@
 <div>
 <h2>Personality</h2>
 </div>
-<section class="slide picgrid">
+</section>
 
+<section class="slide picgrid">
 <div>
 <img src="pictures/whale/WhaleCleaning.png"/>
 <img src="pictures/whale/WhaleError.png"/>
@@ -111,9 +189,11 @@
 </div>
 </section>
 
-
-
-
+<section class="slide pic">
+<div>
+<img src="pictures/laurel.jpg" height="100%"/>
+</div>
+</section>
 
 
 
