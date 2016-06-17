@@ -102,6 +102,7 @@
 	<li>Only used on the Mac - Windows uses Hyper-V
 	<li>Based on Xhyve, which in turn is bsed on Bhyve from FreeBSD
 	<li>A hypervisor is just a single process per emulated CPU core
+	<li><a href="https://github.com/docker/hyperkit">https://github.com/docker/hyperkit</a>
 </ul>
 </div>
 </section>
@@ -112,11 +113,43 @@
 </div>
 </section>
 
-<!-- how config is stored -->
+<section class="slide">
+<div>
+	<h2>Git database</h2>
+<ul>
+	<li>Can do really interesting stuff &ndash; it is git for datastructures
+	<li>Simple use cases here for storing configuration
+	<li>Yes there is a git tree at <code>~/Library/Containers/com.docker.docker/Data/database</code>
+	<li>There is a filesystem view inside the VM
+	<li><a href="https://github.com/docker/datakit">https://github.com/docker/datakit</a>
+<ul>
+</div>
+</section>
 
 <section class="slide shout">
 <div>
-<h2>Moby</h2>
+<h2>Plumbing</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>VSock and HVSock</h2>
+<ul>
+	<li>Socket families for communication with VMs, like Unix sockets
+	<li>VSock originally developed by VMWare
+	<li>HVSock developed by Microsoft, similar design, but different addressing
+	<li>New socket families so not well supported yet, eg no Go support have to use C bindings
+	<li>Communication not over network, so works even if network issues with VM
+	<li>Used to transport the Docket socket to the VM not via https, and other uses.
+<ul>
+</div>
+</section>
+
+
+<section class="slide shout">
+<div>
+<h2>“Moby”</h2>
 </div>
 </section>
 
@@ -145,7 +178,7 @@
 	<h2>No user serviceable parts?</h2>
 <ul>
 	<li>Designed to “just work” and keep Docker runnning.
-	<li>Database sets all the Docker and system config (sorry no UI yet)
+	<li>Database sets all the Docker and system config (UI coming soon)
 	<li>Use privileged containers or capabilities to do other host changes, persist with <code>--restart always</code>
 	<li>eg <a href="https://github.com/etown/install-sysdig-module/blob/master/Dockerfile">install sysdig kernel module</a>
 	<li>root shell: <code>docker run -it --privileged --pid=host debian nsenter -t 1 -m -u -n -i sh</code>
@@ -161,11 +194,25 @@
 	<li>No modules, everything built in for fast boot, but you can add modules
 	<li>Supports aufs and overlay storage drivers (overlay2 soon)
 	<li>Supports NFS, SMB, CRIU, many other things requested by users on the forum
+	<li><code>binfmt_misc</code> set up so you can run arm and other binaries with qemu emulation
 	<li>config in <code>/proc/config.gz</code> patches in <code>/etc/kernel-patches</code>
 <ul>
 </div>
 </section>
 
+<section class="slide">
+<div>
+	<h2>Userspace</h2>
+<ul>
+	<li>Alpine 3.4
+	<li>Docker, statically linked build with seccomp.
+	<li>Reasonable set of utility programs, not just base system, eg Kubernetes had some requirements which were added
+	<li>You can install new packages, again they will not persist over a reboot, but we use this to debug Docker sometimes
+	<li>Some diagnostics code, setup code, file sharing, time synchronisation, ...
+	<li>Will be open sourced when a bit more stable, after GA.
+<ul>
+</div>
+</section>
 
 
 
