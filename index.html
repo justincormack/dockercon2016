@@ -55,6 +55,7 @@
     			width:30%; height: 30%;
 				}
 				.picgrid:after{visibility:hidden}
+				.last:after{background:url(/pictures/lastwhale.png) no-repeat}
 		</style>
 	</div></section>
 
@@ -88,6 +89,17 @@
 </div>
 </section>
 
+<section class="slide">
+<div>
+	<h2>Make it native</h2>
+<ul>
+	<li>Install Docker and it is just there and working
+	<li>Make everything work just like a Linux install
+	<li>Make file notifications work
+	<li>No Virtualbox
+<ul>
+</div>
+</section>
 
 <section class="slide shout">
 <div>
@@ -120,7 +132,7 @@
 	<li>Can do really interesting stuff &ndash; it is git for datastructures
 	<li>Simple use cases here for storing configuration
 	<li>Yes there is a git tree at <code>~/Library/Containers/com.docker.docker/Data/database</code>
-	<li>There is a filesystem view inside the VM
+	<li>There is a filesystem view inside the VM using 9p
 	<li><a href="https://github.com/docker/datakit">https://github.com/docker/datakit</a>
 <ul>
 </div>
@@ -140,7 +152,7 @@
 	<li>VSock originally developed by VMWare
 	<li>HVSock developed by Microsoft, similar design, but different addressing
 	<li>New socket families so not well supported yet, eg no Go support have to use C bindings
-	<li>Communication not over network, so works even if network issues with VM
+	<li>Communication not over network, so works even if network issues
 	<li>Used to transport the Docket socket to the VM not via https, and other uses.
 <ul>
 </div>
@@ -214,11 +226,108 @@
 </div>
 </section>
 
+<section class="slide shout">
+<div>
+<h2>VPNKit</h2>
+</div>
+</section>
 
+<section class="slide">
+<div>
+<h2>Come to Mindy Preston's talk tomorrow at 14:25 Ballroom 6C for more about VPNkit</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>VPNkit</h2>
+<ul>
+	<li><a href="https://github.com/docker/vpnkit">https://github.com/docker/vpnkit</a>
+	<li>Currently being used on Mac, being tested for Windows
+	<li>Take the ethernet traffic from the Linux VM
+	<li>Reconstruct it as application traffic on OSX
+	<li>So <code>socket(); ... listen() ... send()</code> in Linux is reconstructed from ethernet traffic as the same series of calls on OSX.
+	<li>No OS interfaces needed, complete control, appears just like another application so works with VPN, firewall.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>VPNkit</h2>
+<ul>
+	<li>VPNkit uses the network stack from the Mirage unikernel
+	<li>Mirage is a set of low level system libraries
+	<li>Written in OCaml, a functional programming language
+	<li>Easy to repurpose for completely different use cases
+<ul>
+</div>
+</section>
 
 <section class="slide shout">
 <div>
-<h2>Personality</h2>
+<h2>OSXfs</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>OSXfs</h2>
+<ul>
+	<li>Currently only being used on the Mac, SMB used in Windows
+	<li>Uses FUSE on the Linux side to get the system calls
+	<li>Transports these over VSock
+	<li>Converts into OSX filesystem calls.
+	<li>Listens for filesystem notifications in OSX and replays events in Linux.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>OSXfs</h2>
+<ul>
+	<li>As you may see it is somewhat similar model to VPNkit but more complex
+	<li>Filesystems are more different that network stacks
+	<li>Filesystem notifications are quite different as not very standard
+	<li>eg OSX does not provide read notifications, but Linux does.
+	<li>Soon will be able to specify which parts of the filesystem to share.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Windows file sharing</h2>
+<ul>
+	<li>Uses a SMB mount from Linux to Windows
+	<li>SMB protocol supports filesystem notifications but Linux does not unfortunately
+	<li>Will have to solve this by adding notification support or porting OSXfs
+<ul>
+</div>
+</section>
+
+<section class="slide shout">
+<div>
+<h2>User Interface</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>User interface</h2>
+<ul>
+	<li>Minimal at the moment but more plans for the future
+	<li>Native code: Swift on OSX, C# on Windows
+	<li>Communicates through database for configuration.
+	<li>Plans to integrate Kitematic or similar graphical interface later
+<ul>
+</div>
+</section>
+
+<section class="slide shout">
+<div>
+<h2>Design</h2>
 </div>
 </section>
 
@@ -242,10 +351,93 @@
 </div>
 </section>
 
-
-
+<section class="slide shout">
+<div>
+<h2>Why doesnt <em>X</em> work?</h2>
+</div>
+</section>
 
 <section class="slide">
+<div>
+	<h2><code>--net=host</code></h2>
+<ul>
+	<li>With VPNkit, when you <code>--publish</code> a port in a container, we use a custom userland proxy
+	<li>This communicates through the <code>/port</code> 9p filesystem to the Mac
+	<li>The Mac opens a listening socket on the host, so you can connect to your container on <code>localhost:<em>nnn</em></code>
+	<li>This is also used for <code>docker service</code> in Swarm mode
+	<li>But listening to a port with <code>--net=host</code> does not notify Docker so we cannot easily intercept it
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>I cannot connect to container ports</h2>
+<ul>
+	<li>On OSX there is no direct routing to the Linux VM, and so neither can you reach the machines on a bridge network
+	<li>If you want to debug, do it from another container, or <code>docker run --net=container:name</code>
+	<li>You need to do this for overlay networks anyway, so good idea to get used to this.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Unix socket between host and container doesn‘t work</h2>
+<ul>
+	<li>Well yes, they are different computers...
+	<li>But we do plan to make it work via osxfs and transparently proxying over VSock for you
+	<li>In the mean time, make do with a TCP socket or run everything in containers.
+<ul>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Sound and Vision</h2>
+<ul>
+	<li>X Windows, RDP, VNC, or HTTP graphical interfaces can be made to work
+	<li>Audio should be possible too.
+	<li>Quite a few people want this, please help out!
+<ul>
+</div>
+</section>
+
+<section class="slide shout">
+<div>
+<h2>Roadmap</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+	<h2>Stability first, features second</h2>
+<ul>
+	<li>Stability and bug fixing priorities for GA
+	<li>People are using it every day for their work. Including us.
+	<li>Features driven by what you want
+	<li>More components will be open sourced.
+<ul>
+</div>
+</section>
+
+<section class="slide shout">
+<div>
+<h2>Thanks</h2>
+</div>
+</section>
+
+<section class="slide">
+<div>
+<h2>The team, many are here at DockerCon</h2>
+<h2>Many many more people at Docker who contributed</h2>
+<h2>A very long list of contributors to open source projects, especially BHyve, XHyve, Mirage, Alpine Linux</h2>
+</div>
+</section>
+
+
+
+<section class="slide last">
 <div>
 <h2>Questions?</h2>
 <ul>
@@ -258,7 +450,7 @@
 </section>
 
 
-	<p class="badge"><a href="https://github.com/justincormack/dockercon2016">Fork me on Github</a></p>
+	<!--p class="badge"><a href="https://github.com/justincormack/dockercon2016">Fork me on Github</a></p-->
 	<!--
 		To hide progress bar from entire presentation
 		just remove “progress” element.
